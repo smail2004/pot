@@ -1,67 +1,372 @@
-import os
-os.system('pip install random')
-os.system('pip install websocket')
-os.system('pip install websocket-client')
-os.system('pip install requests')
-import websocket
-import ssl
-import os
-import json
-import gzip
-import requests
-from time import sleep
-import random
-import concurrent.futures
+#╭───𓆩🛡️𓆪───╮
+ #    👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+import telebot
+from telebot import types
+import sqlite3, time, random, string
 
-created=0
-failed=0
+# ============ حط معلوماتك ============
+TOKEN = "8287422904:AAGwXU-uZqCDjsy4ldsZJApdX8D1irJFOHc"
+ADMIN_ID = 6479788665  # آي دي الأدمن
+bot = telebot.TeleBot(TOKEN)
 
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+conn = sqlite3.connect("bot.db", check_same_thread=False)
+cur = conn.cursor()
 
-G = '\033[1;32m'
-R = '\033[1;31m'
-own_id='761058551'
-tele_bot='7003770029:AAHcL5Yvj4faVa7dfUL6A9DWRGEesgdz7_8'
-ch='qwertyuioplkjhgfdsazxcvbnm1234567890'
-def create():
- global created
- global failed
- user=str(random.choice('qwertyuioplkjhgfdsazxcvbnm')[0])+str(''.join(random.choice(ch) for i in range(7)))
- 
- #user='kdvdfejevfsheh'
- 
- headers = {
-     "app": "com.safeum.android",
-     "host": None,
-     "remoteIp": "134.209.93.148",
-     "remotePort": str(8080),
-     "sessionId": "b6cbb22d-06ca-41ff-8fda-c0ddeb148195",
-     "time": "2023-04-30 12:13:32",
-     "url": "wss://51.79.208.190/Auth"
- }
- 
- 
- data0={"action":"Register","subaction":"Desktop","locale":"en_GB","gmt":"+02","password":{"m1x":"503c73d12b354f86ff9706b2114704380876f59f1444133e62ca27b5ee8127cc","m1y":"6387ae32b7087257452ae27fc8a925ddd6ba31d955639838249c02b3de175dfc","m2":"219d1d9b049550f26a6c7b7914a44da1b5c931eff8692dbfe3127eeb1a922fcf","iv":"e38cb9e83aef6ceb60a7a71493317903","message":"0d99759f972c527722a18a74b3e0b3c6060fe1be3ad53581a7692ff67b7bb651a18cde40552972d6d0b1482e119abde6203f5ab4985940da19bb998bb73f523806ed67cc6c9dbd310fd59fedee420f32"},"magicword":{"m1x":"04eb364e4ef79f31f3e95df2a956e9c72ddc7b8ed4bf965f4cea42739dbe8a4a","m1y":"ef1608faa151cb7989b0ba7f57b39822d7b282511a77c4d7a33afe8165bdc1ab","m2":"4b4d1468bfaf01a82c574ea71c44052d3ecb7c2866a2ced102d0a1a55901c94b","iv":"b31d0165dde6b3d204263d6ea4b96789","message":"8c6ec7ce0b9108d882bb076be6e49fe2"},"magicwordhint":"0000","login":str(user),"devicename":"Xiaomi Redmi Note 8 Pro","softwareversion":"1.1.0.1380","nickname":"hvtctchnjvfxfx","os":"AND","deviceuid":"c72d110c1ae40d50","devicepushuid":"*dxT6B6Solm0:APA91bHqL8wxzlyKHckKxMDz66HmUqmxCPAVKBDrs8KcxCAjwdpxIPTCfRmeEw8Jks_q13vOSFsOVjCVhb-CkkKmTUsaiS7YOYHQS_pbH1g6P4N-jlnRzySQwGvqMP1gxRVksHiOXKKP","osversion":"and_11.0.0","id":"1734805704"}
- 
- ws=websocket.create_connection("wss://51.79.208.190/Auth", header=headers, sslopt={"cert_reqs": ssl.CERT_NONE})
- ws.send(json.dumps(data0))
- result=ws.recv()
- decoded_data = gzip.decompress(result)
- #print(G+str(decoded_data))
- if '"comment":"Exists"' in str(decoded_data):
-  failed+=1
- elif '"status":"Success"' in str(decoded_data):
-  created+=1
-  y = requests.post(f'https://api.telegram.org/bot{tele_bot}/sendmessage?chat_id={own_id}&text=`{user}`&parse_mode=markdown')
- elif '"comment":"Retry"' in str(decoded_data):
-  failed+=1
- else:
-  print(decoded_data)
+cur.execute("""CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    balance INTEGER DEFAULT 0,
+    last_daily INTEGER DEFAULT 0,
+    referred_by INTEGER
+)""")
 
+cur.execute("""CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    price INTEGER,
+    stock INTEGER,
+    delivery_type TEXT,   -- auto/manual
+    content TEXT
+)""")
 
-executor=concurrent.futures.ThreadPoolExecutor(max_workers=500)
+cur.execute("""CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+)""")
 
-while True:
- executor.submit(create)
- os.system('clear')
- print(G+'Created : '+str(created))
- print(R+'Failed : '+str(failed))
+cur.execute("""CREATE TABLE IF NOT EXISTS links (
+    code TEXT PRIMARY KEY,
+    points INTEGER,
+    max_uses INTEGER,
+    used_count INTEGER DEFAULT 0,
+    expire_at INTEGER
+)""")
+
+conn.commit()
+
+# ============ إعدادات افتراضية ============
+def set_default_settings():
+    defaults = {
+        "daily_status": "on",
+        "daily_points": "10",
+        "ref_points": "5"
+    }
+    for k,v in defaults.items():
+        cur.execute("INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)",(k,v))
+    conn.commit()
+set_default_settings()
+
+def get_setting(key):
+    cur.execute("SELECT value FROM settings WHERE key=?",(key,))
+    r = cur.fetchone()
+    return r[0] if r else None
+
+def set_setting(key,value):
+    cur.execute("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)",(key,str(value)))
+    conn.commit()
+
+# ============ لوح زيك يلوح ============
+
+def main_menu():
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(types.InlineKeyboardButton("🛒 عرض السلع", callback_data="show_products"))
+    kb.add(
+        types.InlineKeyboardButton("🎁 الجائزة اليومية", callback_data="daily"),
+        types.InlineKeyboardButton("👥 الإحالات", callback_data="refs")
+    )
+    kb.add(types.InlineKeyboardButton("💰 رصيدي", callback_data="balance"))
+    return kb
+
+def back_menu():
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="back"))
+    return kb
+
+def admin_menu():
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(types.InlineKeyboardButton("➕ إضافة سلعة", callback_data="add_product"))
+    kb.add(types.InlineKeyboardButton("📦 إدارة السلع", callback_data="manage_products"))
+    kb.add(
+        types.InlineKeyboardButton("🎁 فتح الجائزة", callback_data="open_daily"),
+        types.InlineKeyboardButton("🚫 غلق الجائزة", callback_data="close_daily")
+    )
+    kb.add(types.InlineKeyboardButton("⚙️ تعديل نقاط الجائزة", callback_data="set_daily_points"))
+    kb.add(types.InlineKeyboardButton("⚙️ تعديل نقاط الإحالة", callback_data="set_ref_points"))
+    kb.add(types.InlineKeyboardButton("🔗 صنع رابط نقاط", callback_data="make_link"))
+    kb.add(types.InlineKeyboardButton("📊 الإحصائيات", callback_data="stats"))
+    kb.add(types.InlineKeyboardButton("📢 رسالة جماعية", callback_data="broadcast"))
+    return kb
+
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+def reg_user(uid, ref=None):
+    cur.execute("SELECT 1 FROM users WHERE user_id=?",(uid,))
+    if not cur.fetchone():
+        cur.execute("INSERT INTO users (user_id,balance,referred_by) VALUES (?,?,?)",(uid,0,ref))
+        conn.commit()
+        if ref and ref != uid:
+            ref_points = int(get_setting("ref_points"))
+            cur.execute("UPDATE users SET balance=balance+? WHERE user_id=?",(ref_points,ref))
+            conn.commit()
+            try:
+                bot.send_message(ref, f"👥 شخص دخل من رابطك! +{ref_points}💎")
+            except: pass
+
+# ============ start ============
+@bot.message_handler(commands=["start"])
+def start(msg):
+    uid = msg.from_user.id
+    args = msg.text.split()
+    ref = None
+    if len(args) > 1:
+        param = args[1]
+        # رابط نقاط
+        cur.execute("SELECT points,max_uses,used_count,expire_at FROM links WHERE code=?",(param,))
+        link = cur.fetchone()
+        if link:
+            points,max_uses,used_count,expire_at = link
+            now = int(time.time())
+            if used_count >= max_uses or now > expire_at:
+                bot.send_message(uid,"❌ الرابط منتهي.")
+            else:
+                cur.execute("UPDATE users SET balance=balance+? WHERE user_id=?",(points,uid))
+                cur.execute("UPDATE links SET used_count=used_count+1 WHERE code=?",(param,))
+                conn.commit()
+                bot.send_message(uid,f"🎁 تمت إضافة {points}💎 لرصيدك من الرابط!")
+        else:
+            ref = int(param) if param.isdigit() else None
+    reg_user(uid, ref)
+    bot.send_message(uid,"👋 أهلاً بيك!",reply_markup=main_menu())
+
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+@bot.callback_query_handler(func=lambda c: True)
+def cb(call):
+    uid = call.from_user.id
+    if call.data == "back":
+        bot.edit_message_text("🏠 القائمة الرئيسية:",uid,call.message.message_id,reply_markup=main_menu())
+
+    elif call.data == "balance":
+        cur.execute("SELECT balance FROM users WHERE user_id=?",(uid,))
+        bal = cur.fetchone()[0]
+        bot.edit_message_text(f"💰 رصيدك: {bal}💎",uid,call.message.message_id,reply_markup=back_menu())
+
+    elif call.data == "daily":
+        status = get_setting("daily_status")
+        if status=="off":
+            bot.edit_message_text("🚫 الجائزة اليومية مغلقة حالياً.",uid,call.message.message_id,reply_markup=back_menu())
+            return
+        cur.execute("SELECT last_daily FROM users WHERE user_id=?",(uid,))
+        last = cur.fetchone()[0]
+        now = int(time.time())
+        if now-last < 86400:
+            bot.edit_message_text("❌ استلمت جائزتك النهاردة، ارجع بكرة.",uid,call.message.message_id,reply_markup=back_menu())
+        else:
+            points = int(get_setting("daily_points"))
+            cur.execute("UPDATE users SET balance=balance+?, last_daily=? WHERE user_id=?",(points,now,uid))
+            conn.commit()
+            bot.edit_message_text(f"✅ استلمت {points}💎 من الجائزة اليومية.",uid,call.message.message_id,reply_markup=back_menu())
+
+    elif call.data == "refs":
+        link = f"https://t.me/{bot.get_me().username}?start={uid}"
+        bot.edit_message_text(f"👥 رابط الإحالة:\n{link}",uid,call.message.message_id,reply_markup=back_menu())
+
+    elif call.data == "show_products":
+        cur.execute("SELECT id,name,price FROM products WHERE stock>0")
+        prods = cur.fetchall()
+        kb = types.InlineKeyboardMarkup(row_width=2)
+        for pid,name,price in prods:
+            kb.add(types.InlineKeyboardButton(f"{name} - {price}💎", callback_data=f"buy_{pid}"))
+        kb.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="back"))
+        bot.edit_message_text("🛒 السلع المتاحة:",uid,call.message.message_id,reply_markup=kb)
+
+    elif call.data.startswith("buy_"):
+        pid = int(call.data.split("_")[1])
+        cur.execute("SELECT name,price,delivery_type,content,stock FROM products WHERE id=?",(pid,))
+        p = cur.fetchone()
+        if not p or p[4]<=0:
+            bot.answer_callback_query(call.id,"❌ السلعة غير متاحة")
+            return
+        name,price,delivery,content,stock = p
+        cur.execute("SELECT balance FROM users WHERE user_id=?",(uid,))
+        bal = cur.fetchone()[0]
+        if bal<price:
+            bot.edit_message_text("❌ رصيدك غير كافي.",uid,call.message.message_id,reply_markup=back_menu())
+            return
+        
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+        cur.execute("UPDATE users SET balance=balance-? WHERE user_id=?", (price, uid))
+        # 2. تحديث مخزون السلعة
+        cur.execute("UPDATE products SET stock=stock-1 WHERE id=?", (pid,))
+        
+        conn.commit()
+        # ---متجيش هنا علشان ميقفش ---
+
+        if delivery=="auto":
+            bot.edit_message_text(f"✅ اشتريت {name}\n\n📦 المحتوى:\n{content}",uid,call.message.message_id,reply_markup=back_menu())
+        else:
+            bot.edit_message_text(f"✅ تم تسجيل طلبك للسلعة: {name}\nالإدارة هتتواصل معاك قريباً.",uid,call.message.message_id,reply_markup=back_menu())
+        try:
+            bot.send_message(ADMIN_ID,f"🔔 عملية شراء:\n👤 {uid}\n📦 {name}\n💰 {price}",reply_markup=None)
+        except: pass
+
+   #╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+    elif uid==ADMIN_ID:
+        if call.data=="add_product":
+            bot.send_message(uid,"📝 ارسل اسم السلعة:")
+            bot.register_next_step_handler(call.message, step_add_name)
+        elif call.data=="manage_products":
+            cur.execute("SELECT id,name FROM products")
+            prods = cur.fetchall()
+            txt="📦 السلع:\n"
+            for i,(pid,name) in enumerate(prods,1):
+                txt+=f"{i}. {name} (/del{pid})\n"
+            bot.send_message(uid,txt or "❌ مفيش سلع",reply_markup=admin_menu())
+        elif call.data=="open_daily": set_setting("daily_status","on"); bot.send_message(uid,"✅ تم فتح الجائزة.",reply_markup=admin_menu())
+        elif call.data=="close_daily": set_setting("daily_status","off"); bot.send_message(uid,"🚫 تم غلق الجائزة.",reply_markup=admin_menu())
+        elif call.data=="set_daily_points":
+            bot.send_message(uid,"📝 ارسل عدد النقاط اليومية:")
+            bot.register_next_step_handler(call.message,set_daily_points_step)
+        elif call.data=="set_ref_points":
+            bot.send_message(uid,"📝 ارسل عدد نقاط الإحالة:")
+            bot.register_next_step_handler(call.message,set_ref_points_step)
+        elif call.data=="make_link":
+            bot.send_message(uid,"📝 ارسل: عدد_النقاط عدد_الاستخدامات عدد_الساعات\nمثال: 50 10 24")
+            bot.register_next_step_handler(call.message,make_link_step)
+        elif call.data=="stats":
+            cur.execute("SELECT COUNT(*) FROM users"); u=cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM products"); p=cur.fetchone()[0]
+            bot.send_message(uid,f"📊 الإحصائيات:\n👥 المستخدمين: {u}\n📦 السلع: {p}",reply_markup=admin_menu())
+        elif call.data=="broadcast":
+            bot.send_message(uid,"📝 ارسل الرسالة للبث:")
+            bot.register_next_step_handler(call.message,broadcast_step)
+
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+
+def step_add_name(msg):
+    bot.send_message(msg.chat.id,"💰 ارسل سعر السلعة:")
+    bot.register_next_step_handler(msg, lambda m: step_add_price(m, msg.text))
+
+def step_add_price(msg,name):
+    try:
+        price=int(msg.text)
+        bot.send_message(msg.chat.id,"🔢 ارسل الكمية:")
+        bot.register_next_step_handler(msg, lambda m: step_add_stock(m, name, price))
+    except: bot.send_message(msg.chat.id,"❌ السعر لازم يكون رقم.")
+
+def step_add_stock(msg,name,price):
+    try:
+        stock=int(msg.text)
+        kb = types.ReplyKeyboardMarkup(one_time_keyboard=True,resize_keyboard=True)
+        kb.add("📦 تسليم تلقائي","🛎️ إشعار الإدارة")
+        bot.send_message(msg.chat.id,"اختار نوع التسليم:",reply_markup=kb)
+        bot.register_next_step_handler(msg, lambda m: step_add_delivery(m,name,price,stock))
+    except: bot.send_message(msg.chat.id,"❌ الكمية لازم تكون رقم.")
+
+def step_add_delivery(msg,name,price,stock):
+    delivery="auto" if "تلقائي" in msg.text else "manual"
+    if delivery=="auto":
+        bot.send_message(msg.chat.id,"📝 ارسل المحتوى (اللي هيتسلم للمشتري):",reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, lambda m: save_product(m,name,price,stock,delivery))
+    else:
+        save_product(msg,name,price,stock,delivery,"")
+
+def save_product(msg,name,price,stock,delivery,content=""):
+    cur.execute("INSERT INTO products (name,price,stock,delivery_type,content) VALUES (?,?,?,?,?)",
+                (name,price,stock,delivery,content if delivery=="auto" else None))
+    conn.commit()
+    bot.send_message(msg.chat.id,"✅ تم إضافة السلعة!",reply_markup=admin_menu())
+
+def set_daily_points_step(msg):
+    try:
+        v=int(msg.text)
+        set_setting("daily_points",v)
+        bot.send_message(msg.chat.id,"✅ تم التحديث.",reply_markup=admin_menu())
+    except: bot.send_message(msg.chat.id,"❌ لازم رقم.")
+
+def set_ref_points_step(msg):
+    try:
+        v=int(msg.text)
+        set_setting("ref_points",v)
+        bot.send_message(msg.chat.id,"✅ تم التحديث.",reply_markup=admin_menu())
+    except: bot.send_message(msg.chat.id,"❌ لازم رقم.")
+
+def make_link_step(msg):
+    try:
+        pts,uses,hours=map(int,msg.text.split())
+        expire=int(time.time())+hours*3600
+        code=''.join(random.choices(string.ascii_letters+string.digits,k=8))
+        cur.execute("INSERT INTO links (code,points,max_uses,expire_at) VALUES (?,?,?,?)",(code,pts,uses,expire))
+        conn.commit()
+        bot.send_message(msg.chat.id,f"✅ رابط:\nhttps://t.me/{bot.get_me().username}?start={code}",reply_markup=admin_menu())
+    except: bot.send_message(msg.chat.id,"❌ الصيغة خطأ.",reply_markup=admin_menu())
+
+def broadcast_step(msg):
+    cur.execute("SELECT user_id FROM users")
+    for u in cur.fetchall():
+        try: bot.send_message(u[0],msg.text)
+        except: pass
+    bot.send_message(msg.chat.id,"✅ تم الإرسال.",reply_markup=admin_menu())
+
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
+@bot.message_handler(commands=["admin"])
+def admin_panel(msg):
+    if msg.from_user.id == ADMIN_ID:
+        bot.send_message(msg.chat.id, "⚙️ لوحة التحكم:", reply_markup=admin_menu())
+    else:
+        bot.send_message(msg.chat.id, "❌ مش مسموحلك بالأمر ده.")
+
+# ============ تشغيل ============
+bot.infinity_polling()
+#╭───𓆩🛡️𓆪───╮
+#     👨‍💻 𝘿𝙚𝙫: @S_S_F3  
+#    📢 𝘾𝙝: @NSEIF
+#سنكر لا تسرق
+#تمت برمجة البوت بالكامل By Saif
+#مش مسامح اي حد يخمط الملف بدون اذني
+#Saif Hassan is Top
