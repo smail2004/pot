@@ -10,8 +10,8 @@ from telebot import types
 import sqlite3, time, random, string
 
 # ============ حط معلوماتك ============
-TOKEN = "8287422904:AAGwXU-uZqCDjsy4ldsZJApdX8D1irJFOHc"
-ADMIN_ID = 6479788665  # آي دي الأدمن
+TOKEN = "6674373168:AAEAs1tNUZTkZzw0adnl0vsxQW7Zy3gAcm0"
+ADMIN_ID = 6697545222  # آي دي الأدمن
 bot = telebot.TeleBot(TOKEN)
 
 #╭───𓆩🛡️𓆪───╮
